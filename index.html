@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTS Manajemen Basis Data - Riwayat Pendidikan</title>
+    <!-- Menghubungkan file CSS terpisah -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Pembungkus efek Glassmorphism -->
+    <div class="glass-container">
+        <h2>Daftar Riwayat Pendidikan</h2>
+        <p><strong>Nama:</strong> Muhammad Qeishya Alfaiza | <strong>NIM:</strong> 2501018</p>
+
+        <table id="tabel-riwayat">
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Nama Sekolah</th>
+                    <th>Tahun Masuk</th>
+                    <th>Tahun Lulus</th>
+                    <th>Keterangan</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td colspan="5">Memuat data dari database...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Memanggil file sql-wasm.js lokal -->
+    <script src="sql-wasm.js"></script>
+    <script>
+        async function loadDatabase() {
+            try {
+                const SQL = await initSqlJs({
+                    locateFile: file => `./${file}`
+                });
+
+                const response = await fetch('./pendidikan.db');
+                const buffer = await response.arrayBuffer();
+                const db = new SQL.Database(new Uint8Array(buffer));
+
+                const results = db.exec("SELECT nama_sekolah, tahun_masuk, tahun_lulus, keterangan FROM riwayat");
+                const tbody = document.querySelector("#tabel-riwayat tbody");
+                tbody.innerHTML = "";
+
+                if (results.length > 0) {
+                    const rows = results[0].values;
+                    rows.forEach((row, index) => {
+                        const tr = document.createElement("tr");
+                        tr.innerHTML = `
+                            <td>${index + 1}</td>
+                            <td>${row[0]}</td>
+                            <td>${row[1]}</td>
+                            <td>${row[2]}</td>
+                            <td>${row[3]}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="5">Data kosong.</td></tr>';
+                }
+            } catch (err) {
+                console.error(err);
+                document.querySelector("#tabel-riwayat tbody").innerHTML = 
+                    `<tr><td colspan="5" style="color:red;">Gagal memuat database: ${err.message}</td></tr>`;
+            }
+        }
+
+        loadDatabase();
+    </script>
+</body>
+</html>
